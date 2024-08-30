@@ -3,19 +3,17 @@ import { expect, test } from '@jupyterlab/galata';
 test('test', async ({ page }) => {
   await page.getByText('Python 3 (ipykernel)').first().click();
   await page.getByText('Python 3 (ipykernel) | Idle').waitFor();
-  await page.getByLabel('notebook content').getByRole('textbox').fill('a = 1');
-  await page.keyboard.press('Shift+Enter');
-  await page.getByRole('textbox').nth(2).fill('b = "hello"');
-  await page.keyboard.press('Control+Enter');
+  await page.notebook.setCell(0, 'code', 'a1 = 1');
+  await page.notebook.runCell(0);
+  await page.notebook.addCell('code', 'b1 = "hello"');
+  await page.notebook.runCell(0, true);
 
   await page.getByRole('tabpanel').click({
     button: 'right'
   });
   await page.getByRole('menu').getByText('Open Variable Inspector').click();
 
-  // const rows = await page.locator('.jp-VarInspector-table-row');
-
-  const firstRow = await page.locator('.jp-VarInspector-table-row').first();
+  const firstRow = page.locator('.jp-VarInspector-table-row').first();
   await expect
     .soft(firstRow.locator('.jp-VarInspector-varName'))
     .toHaveText(/a/);
@@ -28,7 +26,7 @@ test('test', async ({ page }) => {
   await expect
     .soft(firstRow.locator('jp-data-grid-cell').last())
     .toHaveText(/1/);
-  const secondRow = await page.locator('.jp-VarInspector-table-row').last();
+  const secondRow = page.locator('.jp-VarInspector-table-row').last();
   await expect
     .soft(secondRow.locator('.jp-VarInspector-varName'))
     .toHaveText(/b/);
@@ -46,10 +44,10 @@ test('test', async ({ page }) => {
 test('variable filter', async ({ page }) => {
   await page.getByText('Python 3 (ipykernel)').first().click();
   await page.getByText('Python 3 (ipykernel) | Idle').waitFor();
-  await page.getByLabel('notebook content').getByRole('textbox').fill('a1 = 1');
-  await page.keyboard.press('Shift+Enter');
-  await page.getByRole('textbox').nth(2).fill('b1 = "hello"');
-  await page.keyboard.press('Control+Enter');
+  await page.notebook.setCell(0, 'code', 'a1 = 1');
+  await page.notebook.runCell(0);
+  await page.notebook.addCell('code', 'b1 = "hello"');
+  await page.notebook.runCell(0, true);
 
   await page.getByRole('tabpanel').click({
     button: 'right'
@@ -61,10 +59,10 @@ test('variable filter', async ({ page }) => {
   await page.locator('.filter-button').click();
 
   //expect.soft only to have one row with name b and type str
-  await expect
+  expect
     .soft(await page.locator('.jp-VarInspector-table-row').count())
     .toEqual(1);
-  const bRow = await page.locator('.jp-VarInspector-table-row').first();
+  const bRow = page.locator('.jp-VarInspector-table-row').first();
   await expect.soft(bRow.locator('.jp-VarInspector-varName')).toHaveText(/b1/);
   await expect.soft(bRow.locator('.jp-VarInspector-type')).toHaveText(/str/);
   await expect
@@ -83,13 +81,13 @@ test('variable filter', async ({ page }) => {
   await page.locator('.filter-button').click();
 
   //expect.softs no rows except for header
-  await expect
+  expect
     .soft(await page.locator('.jp-VarInspector-table-row').count())
     .toEqual(0);
 
   //Remove the filter
   await page.locator('.filtered-variable-button').click();
-  await expect
+  expect
     .soft(await page.locator('.jp-VarInspector-table-row').count())
     .toEqual(2);
 
@@ -98,10 +96,10 @@ test('variable filter', async ({ page }) => {
   await page.locator('.filter-button').click();
 
   //expect.soft one row with name a1 and type int
-  await expect
+  expect
     .soft(await page.locator('.jp-VarInspector-table-row').count())
     .toEqual(1);
-  const aRow = await page.locator('.jp-VarInspector-table-row').first();
+  const aRow = page.locator('.jp-VarInspector-table-row').first();
   await expect.soft(aRow.locator('.jp-VarInspector-varName')).toHaveText(/a1/);
   await expect.soft(aRow.locator('.jp-VarInspector-type')).toHaveText(/int/);
   await expect
